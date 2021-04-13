@@ -9,8 +9,11 @@ func Router() http.Handler {
 	r := http.NewServeMux()
 
 	addHandler := NewAddHandler(NewAdd(10))
+	// Middlewares executed right to left
+	addHandler = WithMw(addHandler, OtherMw("add10"), LogMw("add10"))
 	r.Handle("/add10", addHandler)
-	r.Handle("/add5", AddHandler(NewAdd(5)))
+
+	r.Handle("/add5", OtherMw("add5")(LogMw("add5")(AddHandler(NewAdd(5)))))
 
 	return r
 }

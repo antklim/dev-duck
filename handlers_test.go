@@ -33,6 +33,7 @@ func BenchmarkAdd10(b *testing.B) {
 	req := httptest.NewRequest("GET", "/add10?operand=3", nil)
 	rr := httptest.NewRecorder()
 
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		addHandler.ServeHTTP(rr, req)
 	}
@@ -61,6 +62,7 @@ func BenchmarkAddHandler10(b *testing.B) {
 	req := httptest.NewRequest("GET", "/add10?operand=4", nil)
 	rr := httptest.NewRecorder()
 
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		addHandler.ServeHTTP(rr, req)
 	}

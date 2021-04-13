@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	devduck "github.com/antklim/dev-duck"
+)
 
 func main() {
 	fmt.Println("dev-duck")
+
+	router := devduck.Router()
+	devduck.Serve(router)
 }

@@ -19,6 +19,7 @@ func (h *addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	operand, err := strconv.Atoi(s)
 	if err != nil {
 		http.Error(w, "invalid operand value "+s, http.StatusBadRequest)
+		return
 	}
 
 	result := h.srv.Do(operand)
@@ -31,6 +32,7 @@ func AddHandler(srv Service) http.HandlerFunc {
 		operand, err := strconv.Atoi(s)
 		if err != nil {
 			http.Error(w, "invalid operand value "+s, http.StatusBadRequest)
+			return
 		}
 
 		result := srv.Do(operand)
@@ -51,6 +53,7 @@ func (h *mulHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	operand, err := strconv.Atoi(s)
 	if err != nil {
 		http.Error(w, "invalid operand value "+s, http.StatusBadRequest)
+		return
 	}
 
 	result := h.srv.Do(operand)
@@ -63,6 +66,7 @@ func MulHandler(srv Service) http.HandlerFunc {
 		operand, err := strconv.Atoi(s)
 		if err != nil {
 			http.Error(w, "invalid operand value "+s, http.StatusBadRequest)
+			return
 		}
 
 		result := srv.Do(operand)

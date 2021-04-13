@@ -37,6 +37,15 @@ func OtherMw(prefix string) MiddlewareFunc {
 	}
 }
 
+func HZMw(next http.Handler) http.Handler {
+	log.Printf("call HZMw(next)\n")
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("executing HZ middleware")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func WithMw(h http.Handler, mws ...MiddlewareFunc) http.Handler {
 	log.Println("WithMw, loading mws...")
 	for _, mw := range mws {

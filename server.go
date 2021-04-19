@@ -8,6 +8,8 @@ import (
 func Router() http.Handler {
 	r := http.NewServeMux()
 
+	r.HandleFunc("/health", HealthHandler)
+
 	addHandler := NewAddHandler(NewAdd(10))
 	// Middlewares executed right to left
 	addHandler = WithMw(addHandler, HZMw, OtherMw("add10"), LogMw("add10"))

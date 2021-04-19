@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+func HealthHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "OK")
+}
+
 type addHandler struct {
 	srv Service
 }

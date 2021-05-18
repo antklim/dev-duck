@@ -1,4 +1,4 @@
-package devduck
+package handler
 
 import (
 	"log"
@@ -47,10 +47,15 @@ func HZMw(next http.Handler) http.Handler {
 }
 
 func WithMw(h http.Handler, mws ...MiddlewareFunc) http.Handler {
-	log.Println("WithMw, loading mws...")
 	for _, mw := range mws {
 		h = mw(h)
 	}
-	log.Println("WithMw, loading mws DONE")
+	return h
+}
+
+func ChainMw(h http.Handler, mws ...MiddlewareFunc) http.Handler {
+	for i := len(mws) - 1; i >= 0; i-- {
+		h = mws[i](h)
+	}
 	return h
 }

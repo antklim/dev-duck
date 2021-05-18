@@ -1,4 +1,4 @@
-package devduck_test
+package handler_test
 
 import (
 	"io/ioutil"
@@ -6,13 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	devduck "github.com/antklim/dev-duck"
+	"github.com/antklim/dev-duck/app"
+	"github.com/antklim/dev-duck/handler"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAdd(t *testing.T) {
-	srv := devduck.NewAdd(10)
-	addHandler := devduck.NewAddHandler(srv)
+	srv := app.NewAdd(10)
+	addHandler := handler.NewAddHandler(srv)
 
 	req := httptest.NewRequest("GET", "/add10?operand=3", nil)
 	rr := httptest.NewRecorder()
@@ -27,8 +28,8 @@ func TestAdd(t *testing.T) {
 }
 
 func BenchmarkAdd10(b *testing.B) {
-	srv := devduck.NewAdd(10)
-	addHandler := devduck.NewAddHandler(srv)
+	srv := app.NewAdd(10)
+	addHandler := handler.NewAddHandler(srv)
 
 	req := httptest.NewRequest("GET", "/add10?operand=3", nil)
 	rr := httptest.NewRecorder()
@@ -40,8 +41,8 @@ func BenchmarkAdd10(b *testing.B) {
 }
 
 func TestAddHandler(t *testing.T) {
-	srv := devduck.NewAdd(14)
-	addHandler := devduck.AddHandler(srv)
+	srv := app.NewAdd(14)
+	addHandler := handler.AddHandler(srv)
 
 	req := httptest.NewRequest("GET", "/add10?operand=4", nil)
 	rr := httptest.NewRecorder()
@@ -56,8 +57,8 @@ func TestAddHandler(t *testing.T) {
 }
 
 func BenchmarkAddHandler10(b *testing.B) {
-	srv := devduck.NewAdd(10)
-	addHandler := devduck.AddHandler(srv)
+	srv := app.NewAdd(10)
+	addHandler := handler.AddHandler(srv)
 
 	req := httptest.NewRequest("GET", "/add10?operand=4", nil)
 	rr := httptest.NewRecorder()

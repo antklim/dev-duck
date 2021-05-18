@@ -1,9 +1,11 @@
-package devduck
+package handler
 
 import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/antklim/dev-duck/app/iface"
 )
 
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
@@ -11,10 +13,10 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type addHandler struct {
-	srv Service
+	srv iface.Service
 }
 
-func NewAddHandler(srv Service) http.Handler {
+func NewAddHandler(srv iface.Service) http.Handler {
 	return &addHandler{srv: srv}
 }
 
@@ -30,7 +32,7 @@ func (h *addHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, result)
 }
 
-func AddHandler(srv Service) http.HandlerFunc {
+func AddHandler(srv iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s := r.URL.Query().Get("operand")
 		operand, err := strconv.Atoi(s)
@@ -45,10 +47,10 @@ func AddHandler(srv Service) http.HandlerFunc {
 }
 
 type mulHandler struct {
-	srv Service
+	srv iface.Service
 }
 
-func NewMulHandler(srv Service) http.Handler {
+func NewMulHandler(srv iface.Service) http.Handler {
 	return &mulHandler{srv: srv}
 }
 
@@ -64,7 +66,7 @@ func (h *mulHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, result)
 }
 
-func MulHandler(srv Service) http.HandlerFunc {
+func MulHandler(srv iface.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s := r.URL.Query().Get("operand")
 		operand, err := strconv.Atoi(s)

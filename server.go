@@ -1,21 +1,26 @@
-package devduck
+package main
 
 import (
 	"log"
 	"net/http"
+
+	"github.com/antklim/dev-duck/app"
+	"github.com/antklim/dev-duck/handler"
 )
 
 func Router() http.Handler {
 	r := http.NewServeMux()
 
-	r.HandleFunc("/health", HealthHandler)
+	r.HandleFunc("/health", handler.HealthHandler)
 
-	addHandler := NewAddHandler(NewAdd(10))
+	addHandler := handler.NewAddHandler(app.NewAdd(10))
+
 	// Middlewares executed right to left
-	addHandler = WithMw(addHandler, HZMw, OtherMw("add10"), LogMw("add10"))
+	addHandler = handler.WithMw(addHandler, handler.HZMw, handler.OtherMw("add10"), handler.LogMw("add10"))
 	r.Handle("/add10", addHandler)
 
-	r.Handle("/add5", OtherMw("add5")(LogMw("add5")(AddHandler(NewAdd(5)))))
+	// Middlewares executed left to right
+	r.Handle("/add5", handler.ChainMw(handler.AddHandler(app.NewAdd(5)), handler.OtherMw("add5"), handler.LogMw("add5")))
 
 	return r
 }

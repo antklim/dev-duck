@@ -19,7 +19,7 @@ RUN go build -o build/ ./...
 # 2. Run
 FROM gcr.io/distroless/base
 
-COPY --from=builder /build/build/cmd /
+COPY --from=builder /build/build/dev-duck /
 
 # Command to run
-ENTRYPOINT ["/cmd"]
+ENTRYPOINT ["/dev-duck"]

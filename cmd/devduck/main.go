@@ -32,7 +32,7 @@ func Router() http.Handler {
 }
 
 func main() {
-	fmt.Println("Welcome to dev-duck")
+	fmt.Println("Welcome to devduck")
 
 	address := ":8080"
 

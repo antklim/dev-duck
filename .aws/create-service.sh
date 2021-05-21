@@ -15,5 +15,4 @@ aws cloudformation update-stack --stack-name dev-duck-service \
   --tags Key=project,Value=$PROJECT \
   --region ap-southeast-2 \
   --capabilities CAPABILITY_NAMED_IAM \
-  --output yaml \
-  --profile $PROFILE
+  --output yaml

@@ -17,9 +17,10 @@ COPY . .
 RUN go build -o build/ ./...
 
 # 2. Run
-FROM gcr.io/distroless/base
+FROM gcr.io/distroless/base AS devduck
+COPY --from=builder /build/build/devduck /
+ENTRYPOINT ["/devduck"]
 
-COPY --from=builder /build/build/dev-duck /
-
-# Command to run
-ENTRYPOINT ["/dev-duck"]
+FROM gcr.io/distroless/base AS devduckauth
+COPY --from=builder /build/build/devduckauth /
+ENTRYPOINT ["/devduckauth"]

@@ -1,14 +1,13 @@
 #!/bin/bash
 
-IMAGE=dev-duck
+REPO=dev-duck
 PROJECT=dev-duck
 
-aws cloudformation create-stack --stack-name dev-duck-ecr \
+aws cloudformation update-stack --stack-name dev-duck-ecr \
   --template-body file://ecr.yml \
-  --parameters ParameterKey=Name,ParameterValue=$IMAGE \
+  --parameters ParameterKey=Name,ParameterValue=$REPO \
   ParameterKey=ProjectName,ParameterValue=$PROJECT \
   --tags Key=project,Value=$PROJECT \
   --region ap-southeast-2 \
   --capabilities CAPABILITY_NAMED_IAM \
-  --output yaml \
-  --profile $PROFILE
+  --output yaml

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: try Task (Go) instead of bash scripts
+
 REPO=dev-duck
 PROJECT=dev-duck
 

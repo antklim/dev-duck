@@ -2,9 +2,6 @@
 
 # TODO: try Task (Go) instead of bash scripts
 
-REPO=dev-duck
-PROJECT=dev-duck
-
 aws cloudformation update-stack --stack-name dev-duck-ecr \
   --template-body file://ecr.yml \
   --parameters ParameterKey=Name,ParameterValue=$REPO \

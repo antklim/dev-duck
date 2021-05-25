@@ -19,6 +19,13 @@ func Router() http.Handler {
 	r.HandleFunc("/health", handler.HealthHandler)
 
 	r.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+		auth := r.Header.Get("Authorization")
+		log.Printf("received auth header: %s", auth)
+
+		if auth != "secret word" {
+			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
+		}
+
 		fmt.Fprint(rw, "Devduck Auth OK")
 	})
 

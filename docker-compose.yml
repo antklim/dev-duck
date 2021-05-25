@@ -1,0 +1,22 @@
+services:
+  devduckauth:
+    build: 
+      context: .
+      target: devduckauth
+    networks:
+      - devduck-nw
+    ports:
+      - "${AUTH_CONTAINER_PORT:-8090}:8090"
+
+  devduck:
+    build:
+      context: .
+      target: devduck
+    networks:
+      - devduck-nw
+    ports:
+      - "${CONTAINER_PORT:-8080}:8080"
+
+networks:
+  devduck-nw:
+  

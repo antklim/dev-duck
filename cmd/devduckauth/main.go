@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +15,15 @@ import (
 	"github.com/oklog/run"
 )
 
-func Router() http.Handler {
+func reverseProxy(target *url.URL, rw http.ResponseWriter, r *http.Request) {
+	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
+
+	proxy.ServeHTTP(rw, r)
+}
+
+func Router(proxyTarget *url.URL) http.Handler {
 	r := http.NewServeMux()
 
 	r.HandleFunc("/health", handler.HealthHandler) // TODO: reverse proxy to main app
@@ -25,7 +35,7 @@ func Router() http.Handler {
 			return
 		}
 
-		fmt.Fprint(rw, "Devduck Auth OK")
+		reverseProxy(proxyTarget, rw, r)
 	})
 
 	return r
@@ -35,10 +45,15 @@ func main() {
 	fmt.Println("Welcome to devduckauth")
 
 	address := ":8090"
+	proxyTarget, err := url.Parse("http://devduck:8080")
+	if err != nil {
+		fmt.Printf("failed to parse proxy target url: %+v", err)
+		return
+	}
 
 	s := &http.Server{
 		Addr:    address,
-		Handler: Router(),
+		Handler: Router(proxyTarget),
 	}
 
 	var g run.Group

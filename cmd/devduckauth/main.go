@@ -15,6 +15,11 @@ import (
 	"github.com/oklog/run"
 )
 
+const (
+	defaultPort        = "8080"
+	defaultProxyTarget = "http://devduck:8080"
+)
+
 func reverseProxy(target *url.URL, rw http.ResponseWriter, r *http.Request) {
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
@@ -44,13 +49,25 @@ func Router(proxyTarget *url.URL) http.Handler {
 func main() {
 	fmt.Println("Welcome to devduckauth")
 
-	proxyTarget, err := url.Parse("http://devduck:8080") // TODO: make configurable via flags/env vars
+	proxyTargetVal := os.Getenv("DEV_DUCK_URL")
+	if proxyTargetVal == "" {
+		proxyTargetVal = defaultProxyTarget
+	}
+
+	fmt.Printf("Proxy target: %s\n", proxyTargetVal)
+
+	proxyTarget, err := url.Parse(proxyTargetVal)
 	if err != nil {
-		fmt.Printf("failed to parse proxy target url: %+v", err)
+		fmt.Printf("failed to parse proxy target url: %+v\n", err)
 		return
 	}
 
-	address := ":8080" // TODO: make configurable via flags
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	address := fmt.Sprintf(":%s", port)
 
 	s := &http.Server{
 		Addr:    address,

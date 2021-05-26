@@ -14,6 +14,8 @@ import (
 	"github.com/oklog/run"
 )
 
+const defaultPort = "8080"
+
 func Router() http.Handler {
 	r := http.NewServeMux()
 
@@ -34,7 +36,12 @@ func Router() http.Handler {
 func main() {
 	fmt.Println("Welcome to devduck")
 
-	address := ":8080" // TODO: make configurable via flags
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	address := fmt.Sprintf(":%s", port)
 
 	s := &http.Server{
 		Addr:    address,

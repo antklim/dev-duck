@@ -34,7 +34,7 @@ func Router() http.Handler {
 func main() {
 	fmt.Println("Welcome to devduck")
 
-	address := ":8080"
+	address := ":8080" // TODO: make configurable via flags
 
 	s := &http.Server{
 		Addr:    address,

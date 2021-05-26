@@ -6,7 +6,7 @@ services:
     networks:
       - devduck-nw
     ports:
-      - "${AUTH_CONTAINER_PORT:-8090}:8090"
+      - "${AUTH_CONTAINER_PORT:-8090}:8080"
 
   devduck:
     build:

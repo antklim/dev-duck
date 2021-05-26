@@ -44,13 +44,13 @@ func Router(proxyTarget *url.URL) http.Handler {
 func main() {
 	fmt.Println("Welcome to devduckauth")
 
-	address := ":8090"
 	proxyTarget, err := url.Parse("http://devduck:8080")
 	if err != nil {
 		fmt.Printf("failed to parse proxy target url: %+v", err)
 		return
 	}
 
+	address := ":8080"
 	s := &http.Server{
 		Addr:    address,
 		Handler: Router(proxyTarget),

@@ -15,6 +15,9 @@ import (
 	"github.com/oklog/run"
 )
 
+// TODO: add https://github.com/spf13/viper configuration manager
+// TODO: set JSON format for logger
+
 const (
 	defaultPort        = "8080"
 	defaultProxyTarget = "http://devduck:8080"
@@ -31,7 +34,7 @@ func reverseProxy(target *url.URL, rw http.ResponseWriter, r *http.Request) {
 func Router(proxyTarget *url.URL) http.Handler {
 	r := http.NewServeMux()
 
-	r.HandleFunc("/health", handler.HealthHandler) // TODO: reverse proxy to main app
+	r.HandleFunc("/health", handler.HealthHandler)
 
 	r.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")

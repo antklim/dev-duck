@@ -14,6 +14,9 @@ import (
 	"github.com/oklog/run"
 )
 
+// TODO: add https://github.com/spf13/viper configuration manager
+// TODO: set JSON format for logger
+
 const defaultPort = "8080"
 
 func Router() http.Handler {

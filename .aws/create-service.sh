@@ -4,9 +4,9 @@
 
 aws cloudformation update-stack --stack-name dev-duck-service \
   --template-body file://service.yml \
-  --parameters ParameterKey=ContainerImage,ParameterValue=$IMAGE \
+  --parameters ParameterKey=AppContainerImage,ParameterValue=$IMAGE \
+  ParameterKey=AppContainerPort,ParameterValue=$CONTAINER_PORT \
   ParameterKey=Cluster,ParameterValue=$CLUSTER \
-  ParameterKey=ContainerPort,ParameterValue=$CONTAINER_PORT \
   ParameterKey=AuthContainerImage,ParameterValue=$AUTH_IMAGE \
   ParameterKey=AuthContainerPort,ParameterValue=$AUTH_CONTAINER_PORT \
   ParameterKey=ServiceName,ParameterValue=$SERVICE \

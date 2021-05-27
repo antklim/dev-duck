@@ -14,7 +14,6 @@ aws cloudformation update-stack --stack-name dev-duck-service \
   ParameterKey=VPC,ParameterValue=$VPC \
   ParameterKey=Subnets,ParameterValue=$SUBNETS \
   ParameterKey=LoadBalancerSG,ParameterValue=$LOAD_BALANCER_SG \
-  ParameterKey=LoadBalancerListener,ParameterValue=$LOAD_BALANCER_LISTENER \
   --tags Key=project,Value=$PROJECT \
   --region ap-southeast-2 \
   --capabilities CAPABILITY_NAMED_IAM \

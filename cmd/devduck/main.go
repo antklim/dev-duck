@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,33 +10,38 @@ import (
 
 	"github.com/antklim/dev-duck/app"
 	"github.com/antklim/dev-duck/handler"
-	"github.com/oklog/run"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	grun "github.com/oklog/run"
 )
 
 // TODO: add https://github.com/spf13/viper configuration manager
-// TODO: set JSON format for logger
+// TODO: hook metrics to statsd
 
 const defaultPort = "8080"
 
-func Router() http.Handler {
+var logger log.Logger
+
+func Router(logger log.Logger) http.Handler {
 	r := http.NewServeMux()
 
 	r.HandleFunc("/health", handler.HealthHandler)
 
-	addHandler := handler.NewAddHandler(app.NewAdd(10))
+	addHandler := handler.NewAddHandler(app.NewAdd(10), logger)
 
 	// Middlewares executed right to left
 	addHandler = handler.WithMw(addHandler, handler.HZMw, handler.OtherMw("add10"), handler.LogMw("add10"))
 	r.Handle("/add10", addHandler)
 
 	// Middlewares executed left to right
-	r.Handle("/add5", handler.ChainMw(handler.AddHandler(app.NewAdd(5)), handler.OtherMw("add5"), handler.LogMw("add5")))
+	r.Handle("/add5", handler.ChainMw(handler.AddHandler(app.NewAdd(5), logger), handler.OtherMw("add5"), handler.LogMw("add5")))
 
 	return r
 }
 
-func main() {
-	fmt.Println("Welcome to devduck")
+func run() error {
+	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
+	logger = log.With(logger, "container", "devduckauth", "time", log.DefaultTimestampUTC)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -48,16 +52,16 @@ func main() {
 
 	s := &http.Server{
 		Addr:    address,
-		Handler: Router(),
+		Handler: Router(logger),
 	}
 
-	var g run.Group
+	var g grun.Group
 	{
 		g.Add(func() error {
-			log.Printf("Starting server at: %s\n", address)
+			level.Info(logger).Log("msg", "starting server", "server_address", address)
 			return s.ListenAndServe()
 		}, func(err error) {
-			log.Printf("The server stopped: %+v\n", err)
+			level.Info(logger).Log("error", err, "msg", "stopping server")
 		})
 	}
 	{
@@ -67,7 +71,7 @@ func main() {
 			signal.Notify(osSignals, syscall.SIGINT, syscall.SIGTERM)
 			select {
 			case sig := <-osSignals:
-				err := fmt.Errorf("received signal %s", sig)
+				err := fmt.Errorf("received signal: %s", sig)
 				s.Close()
 				return err
 			case <-ctx.Done():
@@ -78,5 +82,11 @@ func main() {
 			cancel()
 		})
 	}
-	fmt.Printf("The group terminated: %v\n", g.Run())
+	return g.Run()
+}
+
+func main() {
+	if err := run(); err != nil {
+		logger.Log("error", err, "msg", "server terminated")
+	}
 }

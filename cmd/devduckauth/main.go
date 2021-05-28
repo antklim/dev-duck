@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -12,16 +11,21 @@ import (
 	"syscall"
 
 	"github.com/antklim/dev-duck/handler"
-	"github.com/oklog/run"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	grun "github.com/oklog/run"
+	"github.com/pkg/errors"
 )
 
 // TODO: add https://github.com/spf13/viper configuration manager
-// TODO: set JSON format for logger
+// TODO: hook metrics to statsd
 
 const (
 	defaultPort        = "8080"
 	defaultProxyTarget = "http://devduck:8080"
 )
+
+var logger log.Logger
 
 func reverseProxy(target *url.URL, rw http.ResponseWriter, r *http.Request) {
 	proxy := httputil.NewSingleHostReverseProxy(target)
@@ -49,20 +53,20 @@ func Router(proxyTarget *url.URL) http.Handler {
 	return r
 }
 
-func main() {
-	fmt.Println("Welcome to devduckauth")
+func run() error {
+	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
+	logger = log.With(logger, "container", "devduckauth", "time", log.DefaultTimestampUTC)
+	logger = level.Info(logger)
 
 	proxyTargetVal := os.Getenv("DEV_DUCK_URL")
 	if proxyTargetVal == "" {
 		proxyTargetVal = defaultProxyTarget
 	}
-
-	fmt.Printf("Proxy target: %s\n", proxyTargetVal)
+	logger.Log("proxy_target", proxyTargetVal)
 
 	proxyTarget, err := url.Parse(proxyTargetVal)
 	if err != nil {
-		fmt.Printf("failed to parse proxy target url: %+v\n", err)
-		return
+		return errors.Wrap(err, "failed to parse proxy target url")
 	}
 
 	port := os.Getenv("PORT")
@@ -77,13 +81,13 @@ func main() {
 		Handler: Router(proxyTarget),
 	}
 
-	var g run.Group
+	var g grun.Group
 	{
 		g.Add(func() error {
-			log.Printf("Starting server at: %s\n", address)
+			logger.Log("msg", "starting server", "server_address", address)
 			return s.ListenAndServe()
 		}, func(err error) {
-			log.Printf("The server stopped: %+v\n", err)
+			logger.Log("error", err, "msg", "stopping server")
 		})
 	}
 	{
@@ -93,7 +97,7 @@ func main() {
 			signal.Notify(osSignals, syscall.SIGINT, syscall.SIGTERM)
 			select {
 			case sig := <-osSignals:
-				err := fmt.Errorf("received signal %s", sig)
+				err := fmt.Errorf("received signal: %s", sig)
 				s.Close()
 				return err
 			case <-ctx.Done():
@@ -104,5 +108,12 @@ func main() {
 			cancel()
 		})
 	}
-	fmt.Printf("The group terminated: %v\n", g.Run())
+
+	return g.Run()
+}
+
+func main() {
+	if err := run(); err != nil {
+		logger.Log("error", err, "msg", "server terminated")
+	}
 }

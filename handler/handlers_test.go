@@ -8,12 +8,13 @@ import (
 
 	"github.com/antklim/dev-duck/app"
 	"github.com/antklim/dev-duck/handler"
+	"github.com/go-kit/kit/log"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAdd(t *testing.T) {
 	srv := app.NewAdd(10)
-	addHandler := handler.NewAddHandler(srv)
+	addHandler := handler.NewAddHandler(srv, log.NewNopLogger())
 
 	req := httptest.NewRequest("GET", "/add10?operand=3", nil)
 	rr := httptest.NewRecorder()
@@ -29,7 +30,7 @@ func TestAdd(t *testing.T) {
 
 func BenchmarkAdd10(b *testing.B) {
 	srv := app.NewAdd(10)
-	addHandler := handler.NewAddHandler(srv)
+	addHandler := handler.NewAddHandler(srv, log.NewNopLogger())
 
 	req := httptest.NewRequest("GET", "/add10?operand=3", nil)
 	rr := httptest.NewRecorder()
@@ -42,7 +43,7 @@ func BenchmarkAdd10(b *testing.B) {
 
 func TestAddHandler(t *testing.T) {
 	srv := app.NewAdd(14)
-	addHandler := handler.AddHandler(srv)
+	addHandler := handler.AddHandler(srv, log.NewNopLogger())
 
 	req := httptest.NewRequest("GET", "/add10?operand=4", nil)
 	rr := httptest.NewRecorder()
@@ -58,7 +59,7 @@ func TestAddHandler(t *testing.T) {
 
 func BenchmarkAddHandler10(b *testing.B) {
 	srv := app.NewAdd(10)
-	addHandler := handler.AddHandler(srv)
+	addHandler := handler.AddHandler(srv, log.NewNopLogger())
 
 	req := httptest.NewRequest("GET", "/add10?operand=4", nil)
 	rr := httptest.NewRecorder()

@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// TODO: replace logger with router logger
+
 type MiddlewareFunc func(http.Handler) http.Handler
 
 func LogMw(prefix string) MiddlewareFunc {

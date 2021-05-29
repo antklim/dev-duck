@@ -8,24 +8,32 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/antklim/dev-duck/handler"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/kit/metrics"
+	"github.com/go-kit/kit/metrics/statsd"
 	grun "github.com/oklog/run"
 	"github.com/pkg/errors"
 )
 
 // TODO: add https://github.com/spf13/viper configuration manager
-// TODO: hook metrics to statsd
 
 const (
 	defaultPort        = "8080"
 	defaultProxyTarget = "http://devduck:8080"
+	defaultStatsdHost  = "localhost"
+	defaultStatsdPort  = "8125"
 )
 
-var logger log.Logger
+var (
+	logger log.Logger
+	m      *statsd.Statsd
+)
 
 func reverseProxy(target *url.URL, rw http.ResponseWriter, r *http.Request) {
 	proxy := httputil.NewSingleHostReverseProxy(target)
@@ -38,11 +46,17 @@ func reverseProxy(target *url.URL, rw http.ResponseWriter, r *http.Request) {
 func Router(proxyTarget *url.URL) http.Handler {
 	r := http.NewServeMux()
 
+	reqCounter := m.NewCounter("req_count", 1)
+	reqRejCounter := m.NewCounter("req_rejected_count", 1)
+
 	r.HandleFunc("/health", handler.HealthHandler)
 
 	r.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+		reqCounter.Add(1)
+
 		auth := r.Header.Get("Authorization")
 		if auth != "secret word" {
+			reqRejCounter.Add(1)
 			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -54,10 +68,35 @@ func Router(proxyTarget *url.URL) http.Handler {
 }
 
 func run() error {
+	// configure logger
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.With(logger, "container", "devduckauth", "time", log.DefaultTimestampUTC)
 	logger = level.Info(logger)
 
+	// configure statsd client
+	statsdHost := os.Getenv("STATSD_HOST")
+	if statsdHost == "" {
+		statsdHost = defaultStatsdHost
+	}
+
+	statsdPort := os.Getenv("STATSD_PORT")
+	if statsdPort == "" {
+		statsdPort = defaultStatsdPort
+	}
+
+	statsdAddress := fmt.Sprintf("%s:%s", statsdHost, statsdPort)
+	logger.Log("statsd_address", statsdAddress)
+
+	m = statsd.New("devduckauth.", log.NewNopLogger())
+	report := time.NewTicker(5 * time.Second)
+	defer report.Stop()
+
+	go m.SendLoop(context.Background(), report.C, "udp", statsdAddress)
+
+	goroutines := m.NewGauge("goroutine_count")
+	go exportGoroutines(goroutines)
+
+	// configure proxy
 	proxyTargetVal := os.Getenv("DEV_DUCK_URL")
 	if proxyTargetVal == "" {
 		proxyTargetVal = defaultProxyTarget
@@ -69,6 +108,7 @@ func run() error {
 		return errors.Wrap(err, "failed to parse proxy target url")
 	}
 
+	// configure server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -110,6 +150,12 @@ func run() error {
 	}
 
 	return g.Run()
+}
+
+func exportGoroutines(g metrics.Gauge) {
+	for range time.Tick(time.Second) {
+		g.Set(float64(runtime.NumGoroutine()))
+	}
 }
 
 func main() {

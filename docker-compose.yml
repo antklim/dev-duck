@@ -3,10 +3,12 @@ services:
     build: 
       context: .
       target: devduckauth
+    environment:
+      - STATSD_HOST=statsd
     networks:
       - devduck-nw
     ports:
-      - "${AUTH_CONTAINER_PORT:-8090}:8080"
+      - ${AUTH_CONTAINER_PORT:-8090}:8080
 
   devduck:
     build:
@@ -15,7 +17,22 @@ services:
     networks:
       - devduck-nw
     ports:
-      - "${CONTAINER_PORT:-8080}:8080"
+      - ${CONTAINER_PORT:-8080}:8080
+
+  statsd:
+    image: statsd/statsd:latest
+    configs:
+      - source: statsd_config
+        target: /usr/src/app/config.js
+    networks:
+      - devduck-nw
+    ports:
+      - ${STATSD_PORT_UDP:-8125}:8125/udp
+      - ${STATSD_PORT:-8126}:8126
+
+configs:
+  statsd_config:
+    file: ./statsd_config.js
 
 networks:
   devduck-nw:
